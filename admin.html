@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客管理系统 - Wblog</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+    <!-- 登录页面 -->
+    <div id="login-page" class="login-container">
+        <div class="login-form">
+            <h2>博客管理系统</h2>
+            <p>请输入管理员凭据</p>
+            
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="请输入密码" required>
+            </div>
+            
+            <button id="login-btn" class="btn-primary telegram-button telegram-ripple">登录</button>
+            <p id="login-error" class="error-message"></p>
+        </div>
+    </div>
+
+    <!-- 管理主页面 -->
+    <div id="admin-panel" class="hidden">
+        <!-- 侧边栏导航 -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <h3>Wblog 管理系统</h3>
+                <div class="sidebar-actions">
+                    <button id="toggle-sidebar-btn" class="btn-toggle-sidebar telegram-button telegram-ripple" title="折叠侧边栏">
+                        <span class="toggle-icon">◀</span>
+                    </button>
+                    <button id="logout-btn" class="btn-logout telegram-button telegram-ripple">退出</button>
+                </div>
+            </div>
+            
+            <nav class="admin-nav">
+                <ul>
+                    <li>
+                        <a href="#posts" class="nav-item active" data-section="posts">
+                            <span class="nav-icon">📝</span>
+                            <span class="nav-text">帖子管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#comments" class="nav-item" data-section="comments">
+                            <span class="nav-icon">💬</span>
+                            <span class="nav-text">评论管理</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#settings" class="nav-item" data-section="settings">
+                            <span class="nav-icon">⚙️</span>
+                            <span class="nav-text">系统设置</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="admin-content">
+            <!-- 帖子管理模块 -->
+            <section id="posts-section" class="section active">
+                <div class="section-header">
+                    <h2>帖子管理</h2>
+                    <button id="add-post-btn" class="btn-primary telegram-button telegram-ripple">添加新帖子</button>
+                </div>
+                
+                <!-- 搜索和筛选 -->
+                <div class="search-filter">
+                    <div class="search-group">
+                        <input type="text" id="post-search" placeholder="搜索帖子标题...">
+                        <button id="search-post-btn" class="btn-secondary telegram-button telegram-ripple">搜索</button>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <select id="category-filter">
+                            <option value="all">全部分类</option>
+                            <option value="技术">技术</option>
+                            <option value="生活">生活</option>
+                            <option value="读书">读书</option>
+                        </select>
+                        
+                        <select id="status-filter">
+                            <option value="all">全部状态</option>
+                            <option value="published">已发布</option>
+                            <option value="draft">草稿</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 帖子列表 -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th>分类</th>
+                                <th>作者</th>
+                                <th>发布日期</th>
+                                <th>状态</th>
+                                <th>浏览量</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="posts-list">
+                            <!-- 帖子数据将通过JS动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                <div class="pagination" id="posts-pagination">
+                    <button id="prev-page" class="pagination-btn telegram-button telegram-ripple" disabled>上一页</button>
+                <div id="page-numbers" class="page-numbers"></div>
+                <button id="next-page" class="pagination-btn telegram-button telegram-ripple" disabled>下一页</button>
+                </div>
+            </section>
+
+            <!-- 评论管理模块 -->
+            <section id="comments-section" class="section hidden">
+                <div class="section-header">
+                    <h2>评论管理</h2>
+                    <div class="section-stats">
+                        <span class="stat-item"><span class="stat-number">0</span> 待审核</span>
+                        <span class="stat-item"><span class="stat-number">0</span> 已通过</span>
+                    </div>
+                </div>
+                
+                <!-- 搜索和筛选 -->
+                <div class="search-filter">
+                    <div class="search-group">
+                        <input type="text" id="comment-search" placeholder="搜索评论内容...">
+                        <button id="search-comment-btn" class="btn-secondary telegram-button telegram-ripple">搜索</button>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <select id="comment-status-filter">
+                            <option value="all">全部状态</option>
+                            <option value="pending">待审核</option>
+                            <option value="approved">已通过</option>
+                            <option value="rejected">已拒绝</option>
+                        </select>
+                        
+                        <select id="post-filter">
+                            <option value="all">全部帖子</option>
+                            <!-- 帖子选项将通过JS动态生成 -->
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 评论列表 -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>内容</th>
+                                <th>用户</th>
+                                <th>帖子</th>
+                                <th>评论日期</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comments-list">
+                            <!-- 评论数据将通过JS动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页 -->
+                <div class="pagination" id="comments-pagination">
+                    <button id="prev-comment-page" class="pagination-btn telegram-button telegram-ripple" disabled>上一页</button>
+                <div id="comment-page-numbers" class="page-numbers"></div>
+                <button id="next-comment-page" class="pagination-btn telegram-button telegram-ripple" disabled>下一页</button>
+                </div>
+            </section>
+
+            <!-- 系统设置模块 -->
+            <section id="settings-section" class="section hidden">
+                <div class="section-header">
+                    <h2>系统设置</h2>
+                </div>
+                
+                <div class="settings-form">
+                    <div class="settings-group">
+                        <h3>基本设置</h3>
+                        
+                        <div class="form-group">
+                            <label for="site-title">网站标题</label>
+                            <input type="text" id="site-title" value="Wblog" placeholder="请输入网站标题">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="site-description">网站描述</label>
+                            <textarea id="site-description" rows="3" placeholder="请输入网站描述">个人技术博客，分享学习心得和生活感悟</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="author-name">作者名称</label>
+                            <input type="text" id="author-name" value="Alexander" placeholder="请输入作者名称">
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <h3>安全设置</h3>
+                        
+                        <div class="form-group">
+                            <label for="new-password">修改密码</label>
+                            <input type="password" id="new-password" placeholder="请输入新密码（留空表示不修改）">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirm-password">确认密码</label>
+                            <input type="password" id="confirm-password" placeholder="请再次输入新密码">
+                        </div>
+                    </div>
+                    
+                    <button id="save-settings-btn" class="btn-primary telegram-button telegram-ripple">保存设置</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 模态框 - 添加/编辑帖子 -->
+    <div id="post-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">添加新帖子</h3>
+                <button class="close-modal telegram-button telegram-ripple">×</button>
+            </div>
+            
+            <form id="post-form">
+                <input type="hidden" id="post-id">
+                
+                <div class="form-group">
+                    <label for="post-title">标题 *</label>
+                    <input type="text" id="post-title" required placeholder="请输入帖子标题">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="post-category">分类 *</label>
+                        <select id="post-category" required>
+                            <option value="技术">技术</option>
+                            <option value="生活">生活</option>
+                            <option value="读书">读书</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="post-author">作者 *</label>
+                        <input type="text" id="post-author" required placeholder="请输入作者名称">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="post-date">发布日期</label>
+                    <input type="date" id="post-date">
+                </div>
+                
+                <div class="form-group">
+                    <label for="post-image">封面图片</label>
+                    <input type="text" id="post-image" placeholder="请输入图片URL">
+                </div>
+                
+                <div class="form-group">
+                    <label for="post-excerpt">摘要</label>
+                    <textarea id="post-excerpt" rows="3" placeholder="请输入帖子摘要"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="post-content">内容 *</label>
+                    <textarea id="post-content" rows="10" required placeholder="请输入帖子内容（支持HTML）"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="post-status">状态</label>
+                    <select id="post-status">
+                        <option value="published">已发布</option>
+                        <option value="draft">草稿</option>
+                    </select>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary close-modal telegram-button telegram-ripple">取消</button>
+                    <button type="submit" class="btn-primary telegram-button telegram-ripple">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 模态框 - 编辑评论 -->
+    <div id="comment-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑评论</h3>
+                <button class="close-modal telegram-button telegram-ripple">×</button>
+            </div>
+            
+            <form id="comment-form">
+                <input type="hidden" id="comment-id">
+                
+                <div class="form-group">
+                    <label for="comment-user">用户</label>
+                    <input type="text" id="comment-user" readonly placeholder="评论用户">
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment-post">所属帖子</label>
+                    <input type="text" id="comment-post" readonly placeholder="所属帖子">
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment-text">评论内容</label>
+                    <textarea id="comment-text" rows="5" placeholder="请输入评论内容"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comment-status">状态</label>
+                    <select id="comment-status">
+                        <option value="pending">待审核</option>
+                        <option value="approved">已通过</option>
+                        <option value="rejected">已拒绝</option>
+                    </select>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary close-modal telegram-button telegram-ripple">取消</button>
+                    <button type="submit" class="btn-primary telegram-button telegram-ripple">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div id="confirm-dialog" class="modal hidden">
+        <div class="modal-content confirm-dialog">
+            <div class="modal-header">
+                <h3 id="confirm-title">确认操作</h3>
+                <button class="close-modal telegram-button telegram-ripple">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <p id="confirm-message">确定要执行此操作吗？</p>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="cancel-confirm" class="btn-secondary telegram-button telegram-ripple">取消</button>
+                <button id="confirm-action" class="btn-danger telegram-button telegram-ripple">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

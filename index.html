@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wblog</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar" role="navigation" aria-label="主导航">
+        <div class="container">
+            <div class="nav-brand">
+                <h1><a href="#" class="brand-link" data-page="home" aria-label="Wblog 首页">Wblog</a></h1>
+            </div>
+            
+            <!-- 汉堡菜单按钮（移动端） -->
+            <button class="hamburger-menu telegram-button telegram-ripple" aria-label="切换导航菜单" aria-expanded="false">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            
+            <ul class="nav-menu" role="menubar">
+                <li role="none">
+                    <a href="#" class="nav-link active" data-page="home" role="menuitem" aria-current="page">首页</a>
+                </li>
+                <li role="none">
+                    <a href="#" class="nav-link" data-page="about" role="menuitem">关于</a>
+                </li>
+                <li role="none">
+                    <a href="#" class="nav-link" data-page="contact" role="menuitem">联系</a>
+                </li>
+                <li role="none">
+                    <button id="theme-toggle" class="theme-toggle telegram-button telegram-ripple" aria-label="切换主题" role="menuitem">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 首页 -->
+            <div id="home-page" class="page active">
+                <!-- 搜索和筛选栏 -->
+                <div class="search-filter-container">
+                    <!-- 搜索框 -->
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="搜索文章..." class="search-input">
+                        <button id="search-btn" class="search-btn telegram-button telegram-ripple">🔍</button>
+                    </div>
+                    
+                    <!-- 筛选栏 -->
+                    <div class="filter-bar">
+                        <button class="filter-btn telegram-button telegram-ripple active" data-category="all">全部</button>
+                        <button class="filter-btn telegram-button telegram-ripple" data-category="技术">技术</button>
+                        <button class="filter-btn telegram-button telegram-ripple" data-category="生活">生活</button>
+                        <button class="filter-btn telegram-button telegram-ripple" data-category="思考">思考</button>
+                    </div>
+                </div>
+
+                <!-- 博客文章列表 -->
+                <div class="blog-grid" id="blog-grid">
+                    <!-- 文章卡片将通过 JavaScript 动态生成 -->
+                </div>
+                
+                <!-- 分页控件 -->
+                <div id="pagination" class="pagination">
+                    <button id="prev-btn" class="pagination-btn telegram-button telegram-ripple">上一页</button>
+                    <div id="page-numbers" class="page-numbers"></div>
+                    <button id="next-btn" class="pagination-btn telegram-button telegram-ripple">下一页</button>
+                </div>
+            </div>
+
+            <!-- 关于页面 -->
+            <div id="about-page" class="page">
+                <div class="about-content">
+                    <h2>关于我</h2>
+                    <p>欢迎来到我的个人博客!这里记录了我的技术学习、生活感悟和思考总结。</p>
+                    <p>我热爱编程,喜欢探索新技术,也享受生活中的点点滴滴。</p>
+                </div>
+            </div>
+
+            <!-- 联系页面 -->
+            <div id="contact-page" class="page">
+                <div class="contact-content">
+                    <h2>联系方式</h2>
+                    <form class="contact-form" id="contact-form">
+                        <div class="form-group">
+                            <label for="name">姓名</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">邮箱</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">留言</label>
+                            <textarea id="message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit telegram-button telegram-ripple">发送</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 文章详情页 -->
+            <div id="article-page" class="page">
+                <article class="article-detail" id="article-detail">
+                    <!-- 文章内容将通过 JavaScript 动态生成 -->
+                </article>
+                <button class="btn-back telegram-button telegram-ripple" id="btn-back">← 返回列表</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Wblog. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/telegram-animations.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/ip-checker.js"></script>
+</body>
+</html>

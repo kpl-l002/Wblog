@@ -1,0 +1,25 @@
+{
+  "name": "wzz-blog",
+  "version": "1.0.0",
+  "description": "Wzz的个人博客 - Vercel部署版本",
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve . -p 3000",
+    "build": "node build.js",
+    "preview": "npx serve out -p 3000"
+  },
+  "keywords": [
+    "blog",
+    "static-site",
+    "personal-website",
+    "vercel"
+  ],
+  "author": "Wzz",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
