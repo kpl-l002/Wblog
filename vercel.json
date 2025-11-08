@@ -19,7 +19,6 @@
     }
   ],
   "routes": [
-    // API路由
     {
       "src": "/api/comments",
       "dest": "/api/comments.js"
@@ -28,17 +27,20 @@
       "src": "/api/check-ip",
       "dest": "/api/check-ip.js"
     },
-    // SPA路由
+    
     {
-      "src": "^/([^\\.]+)$",
+      "src": "^/([^.]+)$",
       "dest": "/index.html",
       "status": 200
     },
-    // 静态文件路由
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
     {
       "handle": "filesystem"
     },
-    // 404页面
+    
     {
       "src": "/(.*)",
       "status": 404,
