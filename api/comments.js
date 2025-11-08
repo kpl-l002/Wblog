@@ -73,5 +73,5 @@ export async function POST(request) {
 }
 
 export const config = {
-  runtime: 'nodejs18.x',
+  runtime: 'nodejs',
 };
