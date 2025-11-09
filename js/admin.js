@@ -146,6 +146,59 @@ function initLoginForm() {
     }
 }
 
+// 初始化管理员主题
+function initAdminTheme() {
+    try {
+        const savedTheme = localStorage.getItem('adminTheme') || 'light';
+        const html = document.documentElement;
+        
+        if (savedTheme === 'dark') {
+            html.setAttribute('data-theme', 'dark');
+            html.classList.add('dark-theme');
+        } else {
+            html.setAttribute('data-theme', 'light');
+            html.classList.remove('dark-theme');
+        }
+        
+        // 更新主题切换按钮状态
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+    } catch (error) {
+        console.error('主题初始化失败:', error);
+    }
+}
+
+// 切换主题
+function toggleTheme() {
+    try {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // 应用新主题
+        html.setAttribute('data-theme', newTheme);
+        
+        if (newTheme === 'dark') {
+            html.classList.add('dark-theme');
+        } else {
+            html.classList.remove('dark-theme');
+        }
+        
+        // 保存主题设置
+        localStorage.setItem('adminTheme', newTheme);
+        
+        // 更新主题切换按钮
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+    } catch (error) {
+        console.error('主题切换失败:', error);
+    }
+}
+
 // 处理登录逻辑
 function handleLogin() {
     try {

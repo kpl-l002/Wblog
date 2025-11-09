@@ -466,6 +466,9 @@ function renderArticleDetail(post, isLocal = false) {
     // 清空现有内容
     articleDetail.innerHTML = '';
     
+    // 设置文章ID数据属性，供评论系统使用
+    articleDetail.setAttribute('data-post-id', post.id);
+    
     // 安全地创建文章标题
     const title = document.createElement('h2');
     title.textContent = post.title;
@@ -521,82 +524,6 @@ function renderArticleDetail(post, isLocal = false) {
         actionsDiv.appendChild(likeBtn);
     }
     
-    // 安全地创建评论区域
-    const commentsSection = document.createElement('div');
-    commentsSection.className = 'comments-section';
-    
-    const commentsTitle = document.createElement('h3');
-    commentsTitle.textContent = '评论区';
-    commentsSection.appendChild(commentsTitle);
-    
-    if (isLocal) {
-        const warningP = document.createElement('p');
-        warningP.style.cssText = 'color: #999; text-align: center; padding: 1rem; background: #f9f9f9; border-radius: 8px;';
-        
-        const warningText1 = document.createTextNode('⚠️ 评论功能需要启动后端服务器');
-        const br = document.createElement('br');
-        const warningText2 = document.createTextNode('请运行 ');
-        const code = document.createElement('code');
-        code.style.cssText = 'background: #e0e0e0; padding: 0.2rem 0.5rem; border-radius: 4px;';
-        code.textContent = 'npm start';
-        const warningText3 = document.createTextNode(' 启动服务器');
-        
-        warningP.appendChild(warningText1);
-        warningP.appendChild(br);
-        warningP.appendChild(warningText2);
-        warningP.appendChild(code);
-        warningP.appendChild(warningText3);
-        
-        commentsSection.appendChild(warningP);
-    } else {
-        const commentForm = document.createElement('form');
-        commentForm.className = 'comment-form';
-        commentForm.onsubmit = function(event) { submitComment(event, post.id); };
-        
-        const formGroup1 = document.createElement('div');
-        formGroup1.className = 'form-group';
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.id = 'comment-name';
-        nameInput.placeholder = '姓名';
-        nameInput.required = true;
-        formGroup1.appendChild(nameInput);
-        
-        const formGroup2 = document.createElement('div');
-        formGroup2.className = 'form-group';
-        const emailInput = document.createElement('input');
-        emailInput.type = 'email';
-        emailInput.id = 'comment-email';
-        emailInput.placeholder = '邮箱(可选)';
-        formGroup2.appendChild(emailInput);
-        
-        const formGroup3 = document.createElement('div');
-        formGroup3.className = 'form-group';
-        const contentTextarea = document.createElement('textarea');
-        contentTextarea.id = 'comment-content';
-        contentTextarea.placeholder = '写下你的评论...';
-        contentTextarea.rows = 3;
-        contentTextarea.required = true;
-        formGroup3.appendChild(contentTextarea);
-        
-        const submitBtn = document.createElement('button');
-        submitBtn.type = 'submit';
-        submitBtn.className = 'btn-submit-comment telegram-button telegram-ripple';
-        submitBtn.textContent = '发表评论';
-        
-        commentForm.appendChild(formGroup1);
-        commentForm.appendChild(formGroup2);
-        commentForm.appendChild(formGroup3);
-        commentForm.appendChild(submitBtn);
-        
-        const commentsList = document.createElement('div');
-        commentsList.id = 'comments-list';
-        commentsList.className = 'comments-list';
-        
-        commentsSection.appendChild(commentForm);
-        commentsSection.appendChild(commentsList);
-    }
-    
     // 组装所有元素
     articleDetail.appendChild(title);
     articleDetail.appendChild(meta);
@@ -604,7 +531,6 @@ function renderArticleDetail(post, isLocal = false) {
         articleDetail.appendChild(actionsDiv);
     }
     articleDetail.appendChild(content);
-    articleDetail.appendChild(commentsSection);
     
     // 切换到文章页面
     document.getElementById('home-page').classList.remove('active');
@@ -613,8 +539,10 @@ function renderArticleDetail(post, isLocal = false) {
     // 滚动到顶部
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    if (!isLocal) {
-        loadComments(post.id);
+    // 评论系统会自动检测并加载评论区域
+    if (window.commentSystem) {
+        window.commentSystem.currentPostId = post.id;
+        window.commentSystem.loadComments();
     }
 }
 

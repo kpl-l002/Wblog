@@ -1,0 +1,421 @@
+/* 评论系统样式 */
+
+/* 评论容器 */
+.comments-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.comments-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.comments-count {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    background: var(--accent-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+/* 评论表单 */
+.comment-form {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.comment-form h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.submit-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    align-self: flex-start;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 评论列表 */
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comment-item {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.author-email {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.comment-date {
+    margin: 0;
+}
+
+.comment-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background: #d1edff;
+    color: #0c5460;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.comment-content {
+    color: var(--text-color);
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* 管理员操作按钮 */
+.comment-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.comment-item:hover .comment-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.approve-btn {
+    background: #10b981;
+    color: white;
+}
+
+.approve-btn:hover {
+    background: #059669;
+}
+
+.reject-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.reject-btn:hover {
+    background: #dc2626;
+}
+
+.delete-btn {
+    background: #6b7280;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #4b5563;
+}
+
+/* 回复评论 */
+.reply-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-color);
+}
+
+.reply-toggle {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    text-align: left;
+}
+
+.reply-toggle:hover {
+    text-decoration: underline;
+}
+
+/* 加载状态 */
+.comments-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.comments-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-secondary);
+}
+
+.comments-empty h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+}
+
+/* 错误消息 */
+.comment-error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.comment-success {
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .comments-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+    }
+    
+    .comment-form {
+        padding: 1rem;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .comment-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .comment-actions {
+        opacity: 1; /* 移动端始终显示操作按钮 */
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        flex: 1;
+        min-width: 80px;
+    }
+}
+
+/* 暗色主题适配 */
+.dark-theme .comment-form,
+.dark-theme .comment-item {
+    background: var(--card-bg-dark);
+    border-color: var(--border-color-dark);
+}
+
+.dark-theme .form-group input,
+.dark-theme .form-group textarea {
+    background: var(--bg-color-dark);
+    border-color: var(--border-color-dark);
+    color: var(--text-color-dark);
+}
+
+.dark-theme .reply-form {
+    background: var(--bg-secondary-dark);
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comment-item {
+    animation: fadeIn 0.3s ease;
+}
+
+/* 滚动条样式 */
+.comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}

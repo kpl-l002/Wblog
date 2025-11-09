@@ -4,7 +4,7 @@
 export default async function handler(request, response) {
   // 配置需要特殊处理的IP地址列表
   const adminIps = [
-    '192.168.1.1', // 示例IP地址，请替换为实际需要检测的IP
+    '124.240.80.164', // 示例IP地址，请替换为实际需要检测的IP
     '127.0.0.1'    // 本地开发环境IP
   ];
 
