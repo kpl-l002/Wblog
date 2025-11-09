@@ -1,7 +1,7 @@
 // api/check-ip.js
-import { NextResponse } from 'next/server';
+// 使用Node.js Runtime替代Edge Runtime以兼容next/server模块
 
-export default async function handler(request) {
+export default async function handler(request, response) {
   // 配置需要特殊处理的IP地址列表
   const adminIps = [
     '192.168.1.1', // 示例IP地址，请替换为实际需要检测的IP
@@ -19,23 +19,21 @@ export default async function handler(request) {
   // 检查是否为管理员IP
   const isAdminIp = adminIps.includes(userIp);
 
+  // 设置响应头
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET');
+  response.setHeader('Cache-Control', 'no-cache');
+  response.setHeader('Content-Type', 'application/json');
+  
   // 返回JSON响应
-  return NextResponse.json({
+  response.status(200).json({
     isAdminIp: isAdminIp,
     detectedIp: userIp,
     message: isAdminIp ? '管理员IP检测到' : '普通用户IP'
-  }, {
-    headers: {
-      // 允许跨域请求
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET',
-      'Cache-Control': 'no-cache'
-    },
-    status: 200
   });
 }
 
 // 允许GET方法
 export const config = {
-  runtime: 'edge', // 使用Edge Runtime获取最佳性能
+  runtime: 'nodejs', // 使用Node.js Runtime以兼容标准Node.js模块
 };
