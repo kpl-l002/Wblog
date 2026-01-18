@@ -8,6 +8,10 @@ let postsPerPage = 6;
 let totalPages = 1;
 let currentSearchKeyword = '';
 
+// 管理员状态
+let isAdmin = false;
+let adminToken = null;
+
 // 检测当前环境是否为Vercel
 function isVercelEnvironment() {
     return typeof window !== 'undefined' && 
@@ -18,6 +22,9 @@ function isVercelEnvironment() {
 // 初始化函数
 function init() {
     try {
+        // 检查管理员状态
+        checkAdminStatus();
+        
         // 加载Telegram动画库
         if (typeof TelegramAnimations !== 'undefined') {
             telegramAnimations = new TelegramAnimations();
@@ -58,38 +65,87 @@ function init() {
     }
 }
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', init);
+// 检查管理员状态
+function checkAdminStatus() {
+    adminToken = localStorage.getItem('adminToken');
+    isAdmin = !!adminToken;
+    
+    // 显示/隐藏管理员相关元素
+    const adminControls = document.getElementById('admin-controls');
+    const adminNavItem = document.getElementById('admin-nav-item');
+    const createPostBtn = document.getElementById('create-post-btn');
+    
+    if (adminControls && createPostBtn) {
+        if (isAdmin) {
+            adminControls.classList.remove('hidden');
+            createPostBtn.addEventListener('click', showCreatePostModal);
+        } else {
+            adminControls.classList.add('hidden');
+        }
+    }
+    
+    if (adminNavItem) {
+        if (isAdmin) {
+            adminNavItem.classList.remove('hidden');
+        } else {
+            adminNavItem.classList.add('hidden');
+        }
+    }
+}
+
+// 显示创建帖子模态框
+function showCreatePostModal() {
+    const modal = document.getElementById('create-post-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+    }
+}
 
 // 初始化主题
 function initTheme() {
     const themeToggle = document.getElementById('theme-toggle');
+    const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
     const savedTheme = localStorage.getItem('theme') || 'light';
     
     // 应用保存的主题
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-theme');
-        updateThemeIcon(true);
+        updateThemeIcons(true);
     }
     
-    // 主题切换按钮事件
-    themeToggle.addEventListener('click', (event) => {
-        // 创建圆形扩散动画
-        createThemeTransitionAnimation(event);
-        
-        // 延迟主题切换，等动画开始后再改变主题
-        setTimeout(() => {
-            const isDark = document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeIcon(isDark);
-        }, 100);
-        
-        // 添加切换动画
-        themeToggle.style.transform = 'rotate(360deg)';
-        setTimeout(() => {
-            themeToggle.style.transform = '';
-        }, 300);
-    });
+    // 桌面端主题切换按钮事件
+    if (themeToggle) {
+        themeToggle.addEventListener('click', (event) => {
+            handleThemeToggle(event, themeToggle);
+        });
+    }
+    
+    // 移动端主题切换按钮事件
+    if (mobileThemeToggle) {
+        mobileThemeToggle.addEventListener('click', (event) => {
+            handleThemeToggle(event, mobileThemeToggle);
+        });
+    }
+}
+
+// 处理主题切换
+function handleThemeToggle(event, button) {
+    // 创建圆形扩散动画
+    createThemeTransitionAnimation(event);
+    
+    // 延迟主题切换，等动画开始后再改变主题
+    setTimeout(() => {
+        const isDark = document.body.classList.toggle('dark-theme');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        updateThemeIcons(isDark);
+    }, 100);
+    
+    // 添加切换动画
+    button.style.transform = 'rotate(360deg)';
+    setTimeout(() => {
+        button.style.transform = '';
+    }, 300);
 }
 
 // 创建主题切换圆形扩散动画
@@ -124,9 +180,11 @@ function createThemeTransitionAnimation(event) {
 }
 
 // 更新主题图标
-function updateThemeIcon(isDark) {
-    const themeIcon = document.querySelector('.theme-icon');
-    themeIcon.textContent = isDark ? '☀️' : '🌙';
+function updateThemeIcons(isDark) {
+    const themeIcons = document.querySelectorAll('.theme-icon');
+    themeIcons.forEach(icon => {
+        icon.textContent = isDark ? '☀️' : '🌙';
+    });
 }
 
 // 初始化导航栏滚动效果

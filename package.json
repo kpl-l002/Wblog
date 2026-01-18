@@ -4,20 +4,52 @@
   "description": "Wzz的个人博客 - Vercel部署版本",
   "type": "module",
   "scripts": {
+    "validate-features": "node scripts/validate-features.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx serve . -p 3000",
     "build": "node build.js",
-    "preview": "npx serve out -p 3000"
+    "preview": "npx serve out -p 3000",
+    "validate-env": "node scripts/env-validator.js",
+    "validate-secure-env": "node scripts/secure-env-validator.js",
+    "validate-config": "node scripts/check-config.js",
+    "prebuild": "npm run validate-env && npm run validate-secure-env && npm run validate-config && npm run validate-features",
+    "migrate-aurora": "node scripts/migrate-aurora.js --migrate",
+    "deploy:preview": "node scripts/deploy.js preview",
+    "deploy:staging": "node scripts/deploy.js staging",
+    "deploy:production": "node scripts/deploy.js production",
+    "deploy:auto": "node scripts/deploy.js",
+    "deploy:rollback": "vercel rollback",
+    "deploy:status": "vercel ls",
+    "deploy:logs": "vercel logs",
+    "deploy:domains": "vercel domains list",
+    "deploy:alias": "vercel alias",
+    "health:check": "curl -f https://your-blog.vercel.app/api/health",
+    "status:deployments": "curl https://your-blog.vercel.app/api/deploy-status",
+    "version:patch": "npm version patch && git push --follow-tags",
+    "version:minor": "npm version minor && git push --follow-tags",
+    "version:major": "npm version major && git push --follow-tags"
   },
   "keywords": [
     "blog",
     "static-site",
     "personal-website",
-    "vercel"
+    "vercel",
+    "deployment",
+    "automation"
   ],
   "author": "Wzz",
   "license": "MIT",
   "devDependencies": {
-    "serve": "^14.2.1"
+    "serve": "^14.2.1",
+    "axios": "^1.6.0",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "pg": "^8.11.3",
+    "aws-sdk": "^2.1490.0"
+  },
+  "dependencies": {
+    "winston": "^3.11.0",
+    "pg-native": "^3.0.1"
   },
   "engines": {
     "node": ">=16.0.0"

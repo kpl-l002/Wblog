@@ -1,8 +1,20 @@
 {
-  "version": 2,
+  "version": 3,
+  "framework": null,
+  "buildCommand": "node build.js",
+  "devCommand": "vercel dev",
+  "outputDirectory": "out",
   "builds": [
     {
       "src": "api/**/*.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "includeFiles": ["api/**/*.json"]
+      }
+    },
+    {
+      "src": "build.js",
       "use": "@vercel/node"
     },
     {
@@ -18,19 +30,183 @@
       "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/comments",
-      "destination": "/api/comments.js"
+      "src": "/api/comments",
+      "dest": "/api/comments.js",
+      "methods": ["GET", "POST", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
+      }
     },
     {
-      "source": "/api/check-ip",
-      "destination": "/api/check-ip.js"
+      "src": "/api/check-ip",
+      "dest": "/api/check-ip.js",
+      "methods": ["GET", "OPTIONS"]
     },
     {
-      "source": "/((?!\\.).*)?$",
-      "destination": "/index.html"
+      "src": "/api/health",
+      "dest": "/api/health.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/deploy-status",
+      "dest": "/api/deploy-status.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/deploy-webhook",
+      "dest": "/api/deploy-webhook.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "^/((?!api).)*$",
+      "dest": "/$1",
+      "status": 200
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/404.html"
     }
   ],
-  "outputDirectory": "out"
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "**/*.json",
+      "excludeFiles": "**/node_modules/**"
+    }
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "postgresql://user:password@host:5432/database",
+    "DB_HOST": "host",
+    "DB_PORT": 5432,
+    "DB_USER": "user",
+    "DB_PASSWORD": "password",
+    "DB_NAME": "database"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    },
+    "ignore": ["node_modules", ".git", ".env", ".env.local", ".env.development.local", ".env.test.local", ".env.production.local"],
+    "turbo": true,
+    "caching": true,
+    "clean": true
+  },
+  "git": {
+    "deployments": {
+      "main": {
+        "alias": "production"
+      },
+      "develop": {
+        "alias": "staging"
+      },
+      "preview/*": {
+        "alias": "preview"
+      }
+    },
+    "scope": "blog-project",
+    "ignore": ["**/.git/**", "**/.vscode/**", "**/*.log", "**/dist/**", "**/coverage/**"]
+  },
+  "regions": ["hnd1", "sfo1", "iad1", "cdg1"],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/authenticate",
+      "dest": "/api/authenticate.js"
+    },
+    {
+      "source": "/api/comments",
+      "dest": "/api/comments.js"
+    },
+    {
+      "source": "/api/comments-data",
+      "dest": "/api/comments-data.js"
+    },
+    {
+      "source": "/api/posts",
+      "dest": "/api/posts.js"
+    },
+    {
+      "source": "/api/health",
+      "dest": "/api/health.js"
+    },
+    {
+      "source": "/api/deploy-status",
+      "dest": "/api/deploy-status.js"
+    },
+    {
+      "source": "/api/deploy-webhook",
+      "dest": "/api/deploy-webhook.js"
+    },
+    // 新增用户API路由
+    {
+      "source": "/api/users",
+      "dest": "/api/users.js"
+    },
+    {
+      "source": "/api/users/register",
+      "dest": "/api/users.js"
+    },
+    {
+      "source": "/api/users/login",
+      "dest": "/api/users.js"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/admin/config",
+      "destination": "/admin.html",
+      "permanent": true
+    },
+    {
+      "source": "/manage",
+      "destination": "/admin.html",
+      "permanent": true
+    }
+  ]
 }

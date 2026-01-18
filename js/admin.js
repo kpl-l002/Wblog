@@ -24,8 +24,42 @@ const securityConfig = {
 let failedLoginAttempts = 0;
 let lastFailedAttempt = 0;
 
-// 模拟管理员凭据（实际应用中应使用安全的身份验证）
+// 模拟管理员凭据（⚠️ 安全警告：生产环境应使用后端API验证凭据）
 const ADMIN_CREDENTIALS = {
+    username: 'admin',
+    password: 'admin123' // 实际应用中应使用加密存储
+};
+
+// ⚠️ 安全警告：以下函数仅为演示目的
+// 实际生产环境中，认证应通过后端API进行
+async function authenticateUser(username, password) {
+    // 发送认证请求到后端API
+    try {
+        const response = await fetch('/api/authenticate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                username: username, 
+                password: password // 实际应用中应发送加密后的密码
+            })
+        });
+        
+        if(response.ok) {
+            const data = await response.json();
+            return data.success;
+        }
+        return false;
+    } catch (error) {
+        console.error('认证请求失败:', error);
+        return false;
+    }
+}
+
+// 模拟管理员凭据（⚠️ 安全警告：生产环境应使用后端API验证凭据）
+// 在实际应用中，不应在前端存储或处理明文密码
+const DEMO_CREDENTIALS = {
     username: 'admin',
     password: 'admin123' // 实际应用中应使用加密存储
 };
@@ -199,8 +233,8 @@ function toggleTheme() {
     }
 }
 
-// 处理登录逻辑
-function handleLogin() {
+// 登录处理函数
+async function handleLogin() {
     try {
         // 检查登录尝试限制
         const now = Date.now();
@@ -226,12 +260,15 @@ function handleLogin() {
             return;
         }
         
-        // 防止SQL注入的基本过滤
+        // 防止XSS的基本过滤
         const sanitizedUsername = username.replace(/[<>"'&]/g, '');
         
-        // 验证凭据
-        if (sanitizedUsername === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-            // 创建token（实际应用中应由后端生成）
+        // 实际应用中，应向后端API发送认证请求
+        // 这里是模拟调用后端认证API
+        const isAuthenticated = await authenticateUser(sanitizedUsername, password);
+        
+        if (isAuthenticated) {
+            // 创建token（实际应用中应由后端生成并返回）
             const tokenData = {
                 user: sanitizedUsername,
                 exp: Date.now() + (24 * 60 * 60 * 1000) // 24小时过期

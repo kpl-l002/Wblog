@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wblog</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/comments.css">
 </head>
 <body>
     <!-- 导航栏 -->
@@ -13,6 +15,11 @@
             <div class="nav-brand">
                 <h1><a href="#" class="brand-link" data-page="home" aria-label="Wblog 首页">Wblog</a></h1>
             </div>
+            
+            <!-- 主题切换按钮（桌面端 - 右上角） -->
+            <button id="theme-toggle" class="theme-toggle telegram-button telegram-ripple" aria-label="切换主题" role="button">
+                <span class="theme-icon">🌙</span>
+            </button>
             
             <!-- 汉堡菜单按钮（移动端） -->
             <button class="hamburger-menu telegram-button telegram-ripple" aria-label="切换导航菜单" aria-expanded="false">
@@ -31,8 +38,13 @@
                 <li role="none">
                     <a href="#" class="nav-link" data-page="contact" role="menuitem">联系</a>
                 </li>
-                <li role="none">
-                    <button id="theme-toggle" class="theme-toggle telegram-button telegram-ripple" aria-label="切换主题" role="menuitem">
+                <!-- 管理员入口 -->
+                <li role="none" id="admin-nav-item" class="hidden">
+                    <a href="admin.html" class="nav-link" role="menuitem">管理</a>
+                </li>
+                <!-- 移动端主题切换按钮（在菜单内） -->
+                <li role="none" class="mobile-theme-toggle">
+                    <button id="mobile-theme-toggle" class="theme-toggle telegram-button telegram-ripple" aria-label="切换主题" role="menuitem">
                         <span class="theme-icon">🌙</span>
                     </button>
                 </li>
@@ -59,7 +71,13 @@
                         <button class="filter-btn telegram-button telegram-ripple" data-category="技术">技术</button>
                         <button class="filter-btn telegram-button telegram-ripple" data-category="生活">生活</button>
                         <button class="filter-btn telegram-button telegram-ripple" data-category="思考">思考</button>
+                        <button class="filter-btn telegram-button telegram-ripple" data-category="随笔">随笔</button>
                     </div>
+                </div>
+
+                <!-- 发布新文章按钮（仅管理员可见） -->
+                <div class="admin-controls hidden" id="admin-controls">
+                    <button id="create-post-btn" class="btn-primary telegram-button telegram-ripple">发布新文章</button>
                 </div>
 
                 <!-- 博客文章列表 -->
@@ -106,10 +124,43 @@
                 </div>
             </div>
 
-            <!-- 文章详情页 -->
-            <div id="article-page" class="page">
-                <article class="article-detail" id="article-detail">
-                    <!-- 文章内容将通过 JavaScript 动态生成 -->
+            <!-- 文章详情页面 -->
+            <div id="article-detail" class="page hidden">
+                <article class="article-content">
+                    <header class="article-header">
+                        <h1 id="article-title"></h1>
+                        <div class="article-meta">
+                            <span id="article-date"></span>
+                            <span id="article-category"></span>
+                            <span id="article-author"></span>
+                        </div>
+                    </header>
+                    <div class="article-body" id="article-body">
+                        <!-- 文章内容将通过 JavaScript 动态加载 -->
+                    </div>
+                    
+                    <!-- 评论区 -->
+                    <section class="comments-section">
+                        <h3>评论</h3>
+                        <div id="comments-list">
+                            <!-- 评论将通过 JavaScript 动态加载 -->
+                        </div>
+                        <form class="comment-form" id="comment-form">
+                            <div class="form-group">
+                                <label for="comment-author">姓名 *</label>
+                                <input type="text" id="comment-author" name="author" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="comment-email">邮箱 (可选)</label>
+                                <input type="email" id="comment-email" name="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="comment-content">评论内容 *</label>
+                                <textarea id="comment-content" name="content" rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="telegram-button telegram-ripple">发表评论</button>
+                        </form>
+                    </section>
                 </article>
                 <button class="btn-back telegram-button telegram-ripple" id="btn-back">← 返回列表</button>
             </div>
@@ -127,5 +178,7 @@
     <script src="js/telegram-animations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/ip-checker.js"></script>
+    <script src="js/comments.js"></script>
+    <script src="js/post-manager.js"></script>
 </body>
 </html>
