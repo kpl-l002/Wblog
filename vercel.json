@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 2,
   "framework": null,
   "buildCommand": "node build.js",
   "devCommand": "vercel dev",
@@ -40,9 +40,14 @@
   ],
   "routes": [
     {
-      "src": "/api/authenticate",
-      "dest": "/api/authenticate.js",
-      "methods": ["GET, POST, OPTIONS"]
+      "src": "/api/comments",
+      "dest": "/api/comments.js",
+      "methods": ["GET", "POST", "OPTIONS"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
+      }
     },
     {
       "src": "/api/check-ip",
@@ -50,13 +55,8 @@
       "methods": ["GET", "OPTIONS"]
     },
     {
-      "src": "/api/comments",
-      "dest": "/api/comments.js",
-      "methods": ["GET", "POST", "OPTIONS"]
-    },
-    {
-      "src": "/api/comments-data",
-      "dest": "/api/comments-data.js",
+      "src": "/api/health",
+      "dest": "/api/health.js",
       "methods": ["GET", "OPTIONS"]
     },
     {
@@ -70,14 +70,24 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
-      "src": "/api/health",
-      "dest": "/api/health.js",
+      "src": "/api/authenticate",
+      "dest": "/api/authenticate.js",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/comments-data",
+      "dest": "/api/comments-data.js",
       "methods": ["GET", "OPTIONS"]
     },
     {
       "src": "/api/posts",
       "dest": "/api/posts.js",
       "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/users",
+      "dest": "/api/users.js",
+      "methods": ["GET", "POST", "OPTIONS"]
     },
     {
       "src": "/api/users/register",
@@ -90,16 +100,16 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
-      "src": "/api/users",
-      "dest": "/api/users.js",
-      "methods": ["GET", "POST", "OPTIONS"]
-    },
-    {
       "handle": "filesystem"
     },
     {
+      "src": "^/((?!api).)*$",
+      "dest": "/$1",
+      "status": 200
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/404.html"
     }
   ],
   "env": {
