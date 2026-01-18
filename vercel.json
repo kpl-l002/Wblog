@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "framework": null,
   "buildCommand": "node build.js",
   "devCommand": "vercel dev",
