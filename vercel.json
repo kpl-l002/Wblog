@@ -62,12 +62,42 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
-      "src": "^/((?!api).)*$",
-      "dest": "/$1",
-      "status": 200
+      "src": "/api/authenticate",
+      "dest": "/api/authenticate.js",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/comments-data",
+      "dest": "/api/comments-data.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/posts",
+      "dest": "/api/posts.js",
+      "methods": ["GET", "OPTIONS"]
+    },
+    {
+      "src": "/api/users",
+      "dest": "/api/users.js",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/users/register",
+      "dest": "/api/users.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/users/login",
+      "dest": "/api/users.js",
+      "methods": ["POST", "OPTIONS"]
     },
     {
       "handle": "filesystem"
+    },
+    {
+      "src": "^/((?!api).)*$",
+      "dest": "/$1",
+      "status": 200
     },
     {
       "src": "/(.*)",
@@ -83,35 +113,17 @@
     }
   },
   "env": {
-    "NODE_ENV": "production",
-    "DATABASE_URL": "postgresql://user:password@host:5432/database",
-    "DB_HOST": "host",
-    "DB_PORT": 5432,
-    "DB_USER": "user",
-    "DB_PASSWORD": "password",
-    "DB_NAME": "database"
+    "NODE_ENV": "production"
   },
   "build": {
     "env": {
       "NODE_ENV": "production"
     },
     "ignore": ["node_modules", ".git", ".env", ".env.local", ".env.development.local", ".env.test.local", ".env.production.local"],
-    "turbo": true,
     "caching": true,
     "clean": true
   },
   "git": {
-    "deployments": {
-      "main": {
-        "alias": "production"
-      },
-      "develop": {
-        "alias": "staging"
-      },
-      "preview/*": {
-        "alias": "preview"
-      }
-    },
     "scope": "blog-project",
     "ignore": ["**/.git/**", "**/.vscode/**", "**/*.log", "**/dist/**", "**/coverage/**"]
   },
@@ -152,61 +164,6 @@
           "value": "1; mode=block"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/authenticate",
-      "dest": "/api/authenticate.js"
-    },
-    {
-      "source": "/api/comments",
-      "dest": "/api/comments.js"
-    },
-    {
-      "source": "/api/comments-data",
-      "dest": "/api/comments-data.js"
-    },
-    {
-      "source": "/api/posts",
-      "dest": "/api/posts.js"
-    },
-    {
-      "source": "/api/health",
-      "dest": "/api/health.js"
-    },
-    {
-      "source": "/api/deploy-status",
-      "dest": "/api/deploy-status.js"
-    },
-    {
-      "source": "/api/deploy-webhook",
-      "dest": "/api/deploy-webhook.js"
-    },
-    // 新增用户API路由
-    {
-      "source": "/api/users",
-      "dest": "/api/users.js"
-    },
-    {
-      "source": "/api/users/register",
-      "dest": "/api/users.js"
-    },
-    {
-      "source": "/api/users/login",
-      "dest": "/api/users.js"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/admin/config",
-      "destination": "/admin.html",
-      "permanent": true
-    },
-    {
-      "source": "/manage",
-      "destination": "/admin.html",
-      "permanent": true
     }
   ]
 }
