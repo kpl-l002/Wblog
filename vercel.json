@@ -4,6 +4,14 @@
   "buildCommand": "node build.js",
   "devCommand": "vercel dev",
   "outputDirectory": "out",
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "**/*.json",
+      "excludeFiles": "**/node_modules/**"
+    }
+  },
   "builds": [
     {
       "src": "api/**/*.js",
@@ -32,14 +40,9 @@
   ],
   "routes": [
     {
-      "src": "/api/comments",
-      "dest": "/api/comments.js",
-      "methods": ["GET", "POST", "OPTIONS"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
-      }
+      "src": "/api/authenticate",
+      "dest": "/api/authenticate.js",
+      "methods": ["GET, POST, OPTIONS"]
     },
     {
       "src": "/api/check-ip",
@@ -47,8 +50,13 @@
       "methods": ["GET", "OPTIONS"]
     },
     {
-      "src": "/api/health",
-      "dest": "/api/health.js",
+      "src": "/api/comments",
+      "dest": "/api/comments.js",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
+      "src": "/api/comments-data",
+      "dest": "/api/comments-data.js",
       "methods": ["GET", "OPTIONS"]
     },
     {
@@ -62,24 +70,14 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
-      "src": "/api/authenticate",
-      "dest": "/api/authenticate.js",
-      "methods": ["GET", "POST", "OPTIONS"]
-    },
-    {
-      "src": "/api/comments-data",
-      "dest": "/api/comments-data.js",
+      "src": "/api/health",
+      "dest": "/api/health.js",
       "methods": ["GET", "OPTIONS"]
     },
     {
       "src": "/api/posts",
       "dest": "/api/posts.js",
       "methods": ["GET", "OPTIONS"]
-    },
-    {
-      "src": "/api/users",
-      "dest": "/api/users.js",
-      "methods": ["GET", "POST", "OPTIONS"]
     },
     {
       "src": "/api/users/register",
@@ -92,36 +90,25 @@
       "methods": ["POST", "OPTIONS"]
     },
     {
+      "src": "/api/users",
+      "dest": "/api/users.js",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
       "handle": "filesystem"
     },
     {
-      "src": "^/((?!api).)*$",
-      "dest": "/$1",
-      "status": 200
-    },
-    {
       "src": "/(.*)",
-      "dest": "/404.html"
+      "dest": "/index.html"
     }
   ],
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30,
-      "memory": 1024,
-      "includeFiles": "**/*.json",
-      "excludeFiles": "**/node_modules/**"
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   },
   "build": {
     "env": {
       "NODE_ENV": "production"
-    },
-    "ignore": ["node_modules", ".git", ".env", ".env.local", ".env.development.local", ".env.test.local", ".env.production.local"],
-    "caching": true,
-    "clean": true
+    }
   },
   "git": {
     "scope": "blog-project",
