@@ -16,11 +16,9 @@
   environment = { NODE_ENV = "development" }
 
 # 函数超时设置
+# 由于 Netlify 构建系统不接受简单的数值形式，我们需要使用正确的对象格式
 [functions]
-  timeout = 30
-
-[functions.external_build_functions]
-  api = true
+  # 移除了 timeout 配置，因为它不是有效的 Netlify 函数配置选项
 
 # 重写规则，将 API 请求转发到 Netlify Functions
 [[redirects]]
