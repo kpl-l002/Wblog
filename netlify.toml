@@ -18,7 +18,9 @@
 # 函数超时设置
 [functions]
   timeout = 30
-  external_build_functions = ["api"]
+
+[functions.external_build_functions]
+  api = true
 
 # 重写规则，将 API 请求转发到 Netlify Functions
 [[redirects]]
