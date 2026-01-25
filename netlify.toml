@@ -1,7 +1,21 @@
 [build]
-  command = "node build.js"
-  publish = "out"
-  functions = "netlify/functions"
+  command = "npm run build"
+  publish = "dist"
+  functions = "functions"
+
+[dev]
+  command = "npm run dev"
+  port = 8080
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 [template.environment]
   NODE_ENV = "production"

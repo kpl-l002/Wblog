@@ -322,3 +322,55 @@ build().then(result => {
     process.exit(1);
   }
 });
+
+const fs = require('fs');
+const path = require('path');
+
+// 确保 dist 目录存在
+const distDir = path.join(__dirname, 'dist');
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+}
+
+// 复制静态资源到 dist 目录
+const publicDir = path.join(__dirname, 'public');
+if (fs.existsSync(publicDir)) {
+  const files = fs.readdirSync(publicDir);
+  for (const file of files) {
+    const srcPath = path.join(publicDir, file);
+    const destPath = path.join(distDir, file);
+    if (fs.statSync(srcPath).isFile()) {
+      fs.copyFileSync(srcPath, destPath);
+    } else {
+      // 如果是目录则递归复制
+      copyDir(srcPath, destPath);
+    }
+  }
+}
+
+// 复制 index.html 到 dist 目录
+const indexPath = path.join(__dirname, 'index.html');
+if (fs.existsSync(indexPath)) {
+  fs.copyFileSync(indexPath, path.join(distDir, 'index.html'));
+}
+
+console.log('Build completed successfully!');
+
+// 辅助函数：复制整个目录
+function copyDir(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
+  const items = fs.readdirSync(src);
+  for (const item of items) {
+    const srcPath = path.join(src, item);
+    const destPath = path.join(dest, item);
+
+    if (fs.statSync(srcPath).isFile()) {
+      fs.copyFileSync(srcPath, destPath);
+    } else {
+      copyDir(srcPath, destPath);
+    }
+  }
+}

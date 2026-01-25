@@ -1,55 +1,18 @@
 {
-  "name": "wzz-blog",
+  "name": "wblog",
   "version": "1.0.0",
-  "description": "Wzz的个人博客 - 支持 Netlify 部署版本",
-  "type": "module",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "validate-features": "node scripts/validate-features.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx serve . -p 3000",
+    "dev": "node server.js",
     "build": "node build.js",
-    "preview": "npx serve out -p 3000",
-    "validate-env": "node scripts/env-validator.js",
-    "validate-secure-env": "node scripts/secure-env-validator.js",
-    "validate-config": "node scripts/check-config.js",
-    "prebuild": "npm run validate-env && npm run validate-secure-env && npm run validate-config && npm run validate-features",
-    "migrate-aurora": "node scripts/migrate-aurora.js --migrate",
-    "deploy:preview": "node scripts/deploy.js preview",
-    "deploy:staging": "node scripts/deploy.js staging",
-    "deploy:production": "node scripts/deploy.js production",
-    "deploy:auto": "node scripts/deploy.js",
-    "deploy:netlify": "netlify deploy",
-    "deploy:netlify:prod": "netlify deploy --prod",
-    "health:check": "curl -f https://your-blog.netlify.app/api/health",
-    "status:deployments": "curl https://your-blog.netlify.app/api/deploy-status",
-    "version:patch": "npm version patch && git push --follow-tags",
-    "version:minor": "npm version minor && git push --follow-tags",
-    "version:major": "npm version major && git push --follow-tags"
+    "start": "node server.js"
   },
-  "keywords": [
-    "blog",
-    "static-site",
-    "personal-website",
-    "netlify",
-    "deployment",
-    "automation"
-  ],
-  "author": "Wzz",
-  "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.2.1",
-    "axios": "^1.6.0",
-    "bcrypt": "^5.1.0",
-    "jsonwebtoken": "^9.0.0",
-    "pg": "^8.11.3",
-    "aws-sdk": "^2.1490.0",
-    "@netlify/functions": "^2.0.2"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "winston": "^3.11.0",
-    "pg-native": "^3.0.1"
-  },
-  "engines": {
-    "node": ">=16.0.0"
+    "express": "^4.18.2"
   }
 }
