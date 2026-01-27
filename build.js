@@ -2,6 +2,36 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+// 检查并自动安装依赖
+function ensureDependencies() {
+  const dependencies = [
+    'handlebars',
+    'markdown-it',
+    'highlight.js',
+    'markdown-it-highlightjs'
+  ];
+
+  for (const dep of dependencies) {
+    try {
+      require.resolve(dep);
+    } catch (e) {
+      console.log(`${dep} 未找到，正在安装...`);
+      try {
+        execSync(`npm install ${dep}`, { stdio: 'inherit' });
+        // 重新require以确保安装成功
+        require(dep);
+        console.log(`${dep} 安装成功`);
+      } catch (installError) {
+        console.error(`安装 ${dep} 失败:`, installError.message);
+        process.exit(1);
+      }
+    }
+  }
+}
+
+// 在脚本开始时运行依赖检查
+ensureDependencies();
+
 // 读取并解析配置
 const configPath = path.join(__dirname, 'config.json');
 let config = {};
@@ -412,29 +442,9 @@ function copyStaticFiles() {
   }
 }
 
-// 在主函数开始处添加依赖检查
-function checkDependencies() {
-  const dependencies = [
-    'handlebars',
-    'markdown-it',
-    'highlight.js',
-    'markdown-it-highlightjs'
-  ];
-
-  for (const dep of dependencies) {
-    try {
-      require.resolve(dep);
-    } catch (e) {
-      console.error(`${dep} module not found. Please install it using: npm install ${dep}`);
-      process.exit(1);
-    }
-  }
-}
-
 // 主函数
 function main() {
-  // 检查依赖
-  checkDependencies();
+  // 检查依赖 - 现在已经在脚本开始时完成，所以这里不再需要
   
   console.log('开始构建博客...');
   
