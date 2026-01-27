@@ -64,23 +64,23 @@ function getArticles(draftVisible) {
   let articles = [];
   for (const dir of articleDirs) {
     const articlePath = path.join(articlesDir, dir);
-    
+
     // 检查是否为草稿
     const draftFlagPath = path.join(articlePath, 'draft.flag');
     const isDraft = fs.existsSync(draftFlagPath);
-    
+
     // 如果不显示草稿且当前文章是草稿，则跳过
     if (!draftVisible && isDraft) {
       continue;
     }
-    
+
     // 尝试读取标题
     let title = dir; // 默认使用文件夹名称作为标题
     const titlePath = path.join(articlePath, 'title.txt');
     if (fs.existsSync(titlePath)) {
       title = fs.readFileSync(titlePath, 'utf8').trim();
     }
-    
+
     // 尝试读取日期
     let date = null;
     const datePath = path.join(articlePath, 'date.txt');
@@ -92,7 +92,7 @@ function getArticles(draftVisible) {
         date = null; // 如果日期无效则设为null
       }
     }
-    
+
     // 尝试读取标签
     let tags = [];
     const tagsPath = path.join(articlePath, 'tags.txt');
@@ -102,7 +102,7 @@ function getArticles(draftVisible) {
         .map(tag => tag.trim())
         .filter(tag => tag !== '');
     }
-    
+
     // 检查是否存在 index.md 文件
     const indexPath = path.join(articlePath, 'index.md');
     if (fs.existsSync(indexPath)) {
@@ -115,7 +115,7 @@ function getArticles(draftVisible) {
       });
     }
   }
-  
+
   // 按日期排序，最新的在前；没有日期的排在最后
   articles.sort((a, b) => {
     if (a.date === null && b.date === null) return 0;
@@ -123,7 +123,7 @@ function getArticles(draftVisible) {
     if (b.date === null) return -1;
     return b.date - a.date;
   });
-  
+
   return articles;
 }
 
@@ -146,20 +146,20 @@ Handlebars.registerHelper('formatDate', (date) => {
 function generateArticlePage(articleId) {
   const articlePath = path.join(__dirname, 'articles', articleId);
   const indexPath = path.join(articlePath, 'index.md');
-  
+
   if (!fs.existsSync(indexPath)) {
     return null;
   }
-  
+
   const markdownContent = fs.readFileSync(indexPath, 'utf8');
-  
+
   // 尝试读取标题
   let title = articleId; // 默认使用ID作为标题
   const titlePath = path.join(articlePath, 'title.txt');
   if (fs.existsSync(titlePath)) {
     title = fs.readFileSync(titlePath, 'utf8').trim();
   }
-  
+
   // 尝试读取日期
   let date = null;
   const datePath = path.join(articlePath, 'date.txt');
@@ -170,7 +170,7 @@ function generateArticlePage(articleId) {
       date = null;
     }
   }
-  
+
   // 尝试读取标签
   let tags = [];
   const tagsPath = path.join(articlePath, 'tags.txt');
@@ -180,21 +180,21 @@ function generateArticlePage(articleId) {
       .map(tag => tag.trim())
       .filter(tag => tag !== '');
   }
-  
+
   // 转换markdown内容为html
   const md = require('markdown-it')({
     html: true,
     linkify: true,
     typographer: true
   });
-  
+
   // 添加代码块高亮
   const hljs = require('highlight.js');
   const mdWithHighlighting = require('markdown-it-highlightjs')(hljs);
   md.use(mdWithHighlighting);
 
   let htmlContent = md.render(markdownContent);
-  
+
   // 为代码块添加行号
   htmlContent = htmlContent.replace(/<pre><code>(.*?)<\/code><\/pre>/gms, (match, p1) => {
     const lines = p1.split('\n');
@@ -203,23 +203,23 @@ function generateArticlePage(articleId) {
     if (langMatch && langMatch[1]) {
       lang = langMatch[1].replace('language-', '');
     }
-    
+
     let numberedLines = '<div class="code-block">';
     if (lang) {
       numberedLines += `<div class="code-header">${lang}</div>`;
     }
     numberedLines += '<pre><code>';
-    
+
     lines.forEach((line, index) => {
       if (index < lines.length - 1) { // 忽略最后一个空行
         numberedLines += `<span class="line"><span class="line-number">${index + 1}</span>${line}</span>\n`;
       }
     });
-    
+
     numberedLines += '</code></pre></div>';
     return numberedLines;
   });
-  
+
   // 读取模板
   const templatePath = path.join(__dirname, 'template', 'article.html');
   let template;
@@ -332,9 +332,9 @@ function generateHomePage(articles) {
 </body>
 </html>`;
   }
-  
+
   const siteName = config.siteName || 'My Blog';
-  
+
   // 生成文章列表HTML
   let articlesHtml = '';
   articles.forEach(article => {
@@ -342,23 +342,23 @@ function generateHomePage(articles) {
       <article class="article-item">
         <h2><a href="/article/${article.id}">${article.title}</a></h2>
         ${article.date ? `<time datetime="${article.date.toISOString()}">${formatDate(article.date)}</time>` : ''}
-        ${article.tags && article.tags.length > 0 ? 
-          '<div class="tags">' + article.tags.map(tag => `<span class="tag">${tag}</span>`).join('') + '</div>' 
+        ${article.tags && article.tags.length > 0 ?
+          '<div class="tags">' + article.tags.map(tag => `<span class="tag">${tag}</span>`).join('') + '</div>'
           : ''}
         ${article.draft ? '<span class="draft-tag">草稿</span>' : ''}
       </article>
     `;
   });
-  
+
   // 替换模板中的变量
   let pageHtml = template
     .replace('{{siteName}}', siteName)
     .replace('{{#each articles}}', articlesHtml)
     .replace('{{/each}}', '');
-  
+
   // 处理条件渲染占位符
   pageHtml = pageHtml.replace(/{{#if [^}]*}}/g, '').replace(/{{\/if}}/g, '');
-  
+
   return pageHtml;
 }
 
@@ -387,132 +387,132 @@ function generateNotFoundPage() {
 </body>
 </html>`;
   }
-  
+
   return template;
 }
 
 // 复制静态资源
 function copyStaticFiles() {
-  const staticSrc = path.join(__dirname, 'static');
-  const staticDest = path.join(__dirname, 'dist', 'static');
-  
-  if (fs.existsSync(staticSrc)) {
-    // 确保目标目录存在
-    if (!fs.existsSync(path.dirname(staticDest))) {
-      fs.mkdirSync(path.dirname(staticDest), { recursive: true });
-    }
-    
-    // 复制整个static目录
-    const copyRecursive = (src, dest) => {
-      const items = fs.readdirSync(src);
-      
-      for (let item of items) {
-        const srcPath = path.join(src, item);
-        const destPath = path.join(dest, item);
-        
-        const stat = fs.statSync(srcPath);
-        if (stat.isDirectory()) {
-          if (!fs.existsSync(destPath)) {
-            fs.mkdirSync(destPath, { recursive: true });
-          }
-          copyRecursive(srcPath, destPath);
-        } else {
-          fs.copyFileSync(srcPath, destPath);
+    const staticSrc = path.join(__dirname, 'static');
+    const staticDest = path.join(__dirname, 'out', 'static'); // 修改为 out
+
+    if (fs.existsSync(staticSrc)) {
+        // 确保目标目录存在
+        if (!fs.existsSync(path.dirname(staticDest))) {
+            fs.mkdirSync(path.dirname(staticDest), { recursive: true });
         }
-      }
-    };
-    
-    copyRecursive(staticSrc, staticDest);
-  }
-  
-  // 同样复制根目录下的CSS、JS和其他静态文件
-  const filesToCopy = ['style.css', 'script.js', 'highlight.css'];
-  for (const file of filesToCopy) {
-    const srcPath = path.join(__dirname, file);
-    const destPath = path.join(__dirname, 'dist', file);
-    
-    if (fs.existsSync(srcPath)) {
-      // 确保目标目录存在
-      const destDir = path.dirname(destPath);
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
-      }
-      fs.copyFileSync(srcPath, destPath);
+
+        // 复制整个static目录
+        const copyRecursive = (src, dest) => {
+            const items = fs.readdirSync(src);
+
+            for (let item of items) {
+                const srcPath = path.join(src, item);
+                const destPath = path.join(dest, item);
+
+                const stat = fs.statSync(srcPath);
+                if (stat.isDirectory()) {
+                    if (!fs.existsSync(destPath)) {
+                        fs.mkdirSync(destPath, { recursive: true });
+                    }
+                    copyRecursive(srcPath, destPath);
+                } else {
+                    fs.copyFileSync(srcPath, destPath);
+                }
+            }
+        };
+
+        copyRecursive(staticSrc, staticDest);
     }
-  }
+
+    // 同样复制根目录下的CSS、JS和其他静态文件
+    const filesToCopy = ['style.css', 'script.js', 'highlight.css'];
+    for (const file of filesToCopy) {
+        const srcPath = path.join(__dirname, file);
+        const destPath = path.join(__dirname, 'out', file); // 修改为 out
+
+        if (fs.existsSync(srcPath)) {
+            // 确保目标目录存在
+            const destDir = path.dirname(destPath);
+            if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true });
+            }
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+
+    // 复制 assets 目录
+    const assetsSrc = path.join(__dirname, 'assets');
+    const assetsDest = path.join(__dirname, 'out', 'assets'); // 修改为 out
+    if (fs.existsSync(assetsSrc)) {
+        const copyRecursive = (src, dest) => {
+            const items = fs.readdirSync(src);
+
+            for (let item of items) {
+                const srcPath = path.join(src, item);
+                const destPath = path.join(dest, item);
+
+                const stat = fs.statSync(srcPath);
+                if (stat.isDirectory()) {
+                    if (!fs.existsSync(destPath)) {
+                        fs.mkdirSync(destPath, { recursive: true });
+                    }
+                    copyRecursive(srcPath, destPath);
+                } else {
+                    fs.copyFileSync(srcPath, destPath);
+                }
+            }
+        };
+
+        copyRecursive(assetsSrc, assetsDest);
+    }
 }
 
 // 主函数
 function main() {
-  // 检查依赖 - 现在已经在脚本开始时完成，所以这里不再需要
-  
-  console.log('开始构建博客...');
-  
-  // 获取文章列表
-  const articles = getArticles(isDraftVisible);
-  console.log(`找到 ${articles.length} 篇文章`);
-  
-  // 创建输出目录
-  const outputDir = path.join(__dirname, 'out'); // 修改为 out
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-  
-  // 生成主页
-  console.log('正在生成主页...');
-  const homeHtml = generateHomePage(articles);
-  fs.writeFileSync(path.join(outputDir, 'index.html'), homeHtml);
-  
-  // 生成每篇文章的页面
-  console.log('正在生成文章页面...');
-  for (const article of articles) {
-    const articleHtml = generateArticlePage(article.id);
-    if (articleHtml) {
-      const articleDir = path.join(outputDir, 'article', article.id); // 修改为 out
-      if (!fs.existsSync(articleDir)) {
-        fs.mkdirSync(articleDir, { recursive: true });
-      }
-      fs.writeFileSync(path.join(articleDir, 'index.html'), articleHtml);
-      console.log(`已生成文章: ${article.title}`);
+    // 检查依赖 - 现在已经在脚本开始时完成，所以这里不再需要
+
+    console.log('开始构建博客...');
+
+    // 获取文章列表
+    const articles = getArticles(isDraftVisible);
+    console.log(`找到 ${articles.length} 篇文章`);
+
+    // 创建输出目录
+    const outputDir = path.join(__dirname, 'out'); // 修改为 out
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
     }
-  }
-  
-  // 生成404页面
-  console.log('正在生成404页面...');
-  const notFoundHtml = generateNotFoundPage();
-  fs.writeFileSync(path.join(outputDir, '404.html'), notFoundHtml);
-  
-  // 复制静态资源
-  console.log('正在复制静态文件...');
-  copyStaticFiles();
-  
-  // 复制其他可能存在的静态资源
-  const assetsSrc = path.join(__dirname, 'assets');
-  const assetsDest = path.join(outputDir, 'assets'); // 修改为 out
-  if (fs.existsSync(assetsSrc)) {
-    const copyRecursive = (src, dest) => {
-      const items = fs.readdirSync(src);
-      
-      for (let item of items) {
-        const srcPath = path.join(src, item);
-        const destPath = path.join(dest, item);
-        
-        const stat = fs.statSync(srcPath);
-        if (stat.isDirectory()) {
-          if (!fs.existsSync(destPath)) {
-            fs.mkdirSync(destPath, { recursive: true });
-          }
-          copyRecursive(srcPath, destPath);
-        } else {
-          fs.copyFileSync(srcPath, destPath);
+
+    // 生成主页
+    console.log('正在生成主页...');
+    const homeHtml = generateHomePage(articles);
+    fs.writeFileSync(path.join(outputDir, 'index.html'), homeHtml);
+
+    // 生成每篇文章的页面
+    console.log('正在生成文章页面...');
+    for (const article of articles) {
+        const articleHtml = generateArticlePage(article.id);
+        if (articleHtml) {
+            const articleDir = path.join(outputDir, 'article', article.id); // 修改为 out
+            if (!fs.existsSync(articleDir)) {
+                fs.mkdirSync(articleDir, { recursive: true });
+            }
+            fs.writeFileSync(path.join(articleDir, 'index.html'), articleHtml);
+            console.log(`已生成文章: ${article.title}`);
         }
-      }
-    };
-    
-    copyRecursive(assetsSrc, assetsDest);
-  }
-  
-  console.log('构建完成！输出目录: out'); // 更新提示
+    }
+
+    // 生成404页面
+    console.log('正在生成404页面...');
+    const notFoundHtml = generateNotFoundPage();
+    fs.writeFileSync(path.join(outputDir, '404.html'), notFoundHtml);
+
+    // 复制静态资源
+    console.log('正在复制静态文件...');
+    copyStaticFiles();
+
+    console.log('构建完成！输出目录: out'); // 更新提示
 }
 
 // 运行主函数
