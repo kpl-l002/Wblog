@@ -97,6 +97,15 @@ function getArticles(draftVisible) {
   return articles;
 }
 
+// 添加 Handlebars 引擎支持
+const Handlebars = require('handlebars');
+
+// 注册 formatDate 辅助函数
+Handlebars.registerHelper('formatDate', (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+});
+
 // 生成文章页面
 function generateArticlePage(articleId) {
   const articlePath = path.join(__dirname, 'articles', articleId);
@@ -175,7 +184,7 @@ function generateArticlePage(articleId) {
     return numberedLines;
   });
   
-  // 生成完整的HTML页面
+  // 读取模板
   const templatePath = path.join(__dirname, 'template', 'article.html');
   let template;
   if (fs.existsSync(templatePath)) {
@@ -216,36 +225,22 @@ function generateArticlePage(articleId) {
 </body>
 </html>`;
   }
-  
-  // 简单的模板替换
-  const siteName = config.siteName || 'My Blog';
-  let pageHtml = template
-    .replace('{{title}}', title)
-    .replace('{{siteName}}', siteName)
-    .replace('{{{content}}}', htmlContent)
-    .replace('{{date}}', date ? formatDate(date) : '')
-    .replace('{{formatDate date}}', date ? formatDate(date) : '');
-  
-  // 处理条件渲染
-  if (date) {
-    pageHtml = pageHtml.replace('{{#if date}}', '').replace('{{/if}}', '');
-  } else {
-    // 移除整个日期块
-    pageHtml = pageHtml.replace(/{{#if date}}[\s\S]*?{{\/if}}/, '');
-  }
-  
-  if (tags && tags.length > 0) {
-    let tagsHtml = '<div class="tags">';
-    tags.forEach(tag => {
-      tagsHtml += `<span class="tag">${tag}</span>`;
-    });
-    tagsHtml += '</div>';
-    pageHtml = pageHtml.replace('{{#if tags}}', '').replace('{{/if}}', '').replace('{{#each tags}}', tagsHtml).replace('{{/each}}', '');
-  } else {
-    // 移除整个标签块
-    pageHtml = pageHtml.replace(/{{#if tags}}[\s\S]*?{{\/if}}/, '');
-  }
-  
+
+  // 编译模板
+  const compiledTemplate = Handlebars.compile(template);
+
+  // 构建数据对象
+  const data = {
+      title: title,
+      siteName: config.siteName || 'My Blog',
+      date: date ? date.toISOString() : null,
+      tags: tags,
+      content: htmlContent
+  };
+
+  // 渲染模板
+  const pageHtml = compiledTemplate(data);
+
   return pageHtml;
 }
 
