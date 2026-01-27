@@ -453,7 +453,7 @@ function main() {
   console.log(`找到 ${articles.length} 篇文章`);
   
   // 创建输出目录
-  const outputDir = path.join(__dirname, 'dist');
+  const outputDir = path.join(__dirname, 'out'); // 修改为 out
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
@@ -468,7 +468,7 @@ function main() {
   for (const article of articles) {
     const articleHtml = generateArticlePage(article.id);
     if (articleHtml) {
-      const articleDir = path.join(outputDir, 'article', article.id);
+      const articleDir = path.join(outputDir, 'article', article.id); // 修改为 out
       if (!fs.existsSync(articleDir)) {
         fs.mkdirSync(articleDir, { recursive: true });
       }
@@ -488,7 +488,7 @@ function main() {
   
   // 复制其他可能存在的静态资源
   const assetsSrc = path.join(__dirname, 'assets');
-  const assetsDest = path.join(outputDir, 'assets');
+  const assetsDest = path.join(outputDir, 'assets'); // 修改为 out
   if (fs.existsSync(assetsSrc)) {
     const copyRecursive = (src, dest) => {
       const items = fs.readdirSync(src);
@@ -512,7 +512,7 @@ function main() {
     copyRecursive(assetsSrc, assetsDest);
   }
   
-  console.log('构建完成！输出目录: dist');
+  console.log('构建完成！输出目录: out'); // 更新提示
 }
 
 // 运行主函数
