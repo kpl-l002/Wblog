@@ -98,7 +98,13 @@ function getArticles(draftVisible) {
 }
 
 // 添加 Handlebars 引擎支持
-const Handlebars = require('handlebars');
+let Handlebars;
+try {
+  Handlebars = require('handlebars');
+} catch (error) {
+  console.error('Handlebars module not found. Please install it using: npm install handlebars');
+  process.exit(1);
+}
 
 // 注册 formatDate 辅助函数
 Handlebars.registerHelper('formatDate', (date) => {
@@ -406,8 +412,30 @@ function copyStaticFiles() {
   }
 }
 
+// 在主函数开始处添加依赖检查
+function checkDependencies() {
+  const dependencies = [
+    'handlebars',
+    'markdown-it',
+    'highlight.js',
+    'markdown-it-highlightjs'
+  ];
+
+  for (const dep of dependencies) {
+    try {
+      require.resolve(dep);
+    } catch (e) {
+      console.error(`${dep} module not found. Please install it using: npm install ${dep}`);
+      process.exit(1);
+    }
+  }
+}
+
 // 主函数
 function main() {
+  // 检查依赖
+  checkDependencies();
+  
   console.log('开始构建博客...');
   
   // 获取文章列表
