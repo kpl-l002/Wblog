@@ -1,376 +1,486 @@
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
-import crypto from 'crypto';
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
-// 日志工具函数
-function logWithTimestamp(level, message) {
-  const timestamp = new Date().toISOString();
-  console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](
-    `[${timestamp}] [${level.toUpperCase()}] ${message}`
-  );
+// 读取并解析配置
+const configPath = path.join(__dirname, 'config.json');
+let config = {};
+if (fs.existsSync(configPath)) {
+  const configFile = fs.readFileSync(configPath, 'utf8');
+  config = JSON.parse(configFile);
 }
 
-function logSuccess(message) {
-  console.log(`✅ ${message}`);
-}
-
-function logError(message) {
-  console.error(`❌ ${message}`);
-}
-
-function logInfo(message) {
-  console.log(`ℹ️ ${message}`);
-}
-
-// 构建配置
-const BUILD_CONFIG = {
-  outputDir: 'out',
-  staticFiles: [
-    'index.html', '404.html', '500.html', 'admin.html', 
-    'admin_readme.md', 'README.md'
-  ],
-  staticDirs: [
-    { source: 'css', destination: 'css' },
-    { source: 'js', destination: 'js' }
-  ],
-  environment: process.env.NODE_ENV || 'development',
-  isDev: process.env.NODE_ENV !== 'production',
-  startTime: Date.now()
-};
-
-// 记录构建信息
-function writeBuildInfo() {
-  const buildInfo = {
-    timestamp: new Date().toISOString(),
-    environment: BUILD_CONFIG.environment,
-    buildDuration: `${(Date.now() - BUILD_CONFIG.startTime) / 1000}s`,
-    version: process.env.APP_VERSION || '1.0.0',
-    commit: process.env.VERCEL_GIT_COMMIT_SHA || 'local-build',
-    branch: process.env.VERCEL_GIT_COMMIT_REF || 'local'
-  };
-  
-  const buildInfoPath = path.join(BUILD_CONFIG.outputDir, 'build-info.json');
-  try {
-    fs.writeFileSync(buildInfoPath, JSON.stringify(buildInfo, null, 2));
-    logInfo(`构建信息已写入: ${buildInfoPath}`);
-  } catch (err) {
-    logError(`写入构建信息失败: ${err.message}`);
+// 从命令行参数获取配置，如果有的话
+const args = process.argv.slice(2);
+let isDraftVisible = false;
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--draft') {
+    isDraftVisible = true;
   }
 }
 
-// 验证目录是否存在
-function validateDir(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    throw new Error(`目录不存在: ${dirPath}`);
+// 获取文章列表
+function getArticles(draftVisible) {
+  const articlesDir = path.join(__dirname, 'articles');
+  if (!fs.existsSync(articlesDir)) {
+    return [];
   }
-  return true;
-}
 
-// 验证必要文件是否存在
-function validateRequiredFiles() {
-  const requiredFiles = ['index.html', 'package.json'];
-  const missingFiles = [];
-  
-  requiredFiles.forEach(file => {
-    if (!fs.existsSync(file)) {
-      missingFiles.push(file);
+  const articleDirs = fs.readdirSync(articlesDir).filter(file => {
+    const fullPath = path.join(articlesDir, file);
+    return fs.statSync(fullPath).isDirectory();
+  });
+
+  let articles = [];
+  for (const dir of articleDirs) {
+    const articlePath = path.join(articlesDir, dir);
+    
+    // 检查是否为草稿
+    const draftFlagPath = path.join(articlePath, 'draft.flag');
+    const isDraft = fs.existsSync(draftFlagPath);
+    
+    // 如果不显示草稿且当前文章是草稿，则跳过
+    if (!draftVisible && isDraft) {
+      continue;
     }
+    
+    // 尝试读取标题
+    let title = dir; // 默认使用文件夹名称作为标题
+    const titlePath = path.join(articlePath, 'title.txt');
+    if (fs.existsSync(titlePath)) {
+      title = fs.readFileSync(titlePath, 'utf8').trim();
+    }
+    
+    // 尝试读取日期
+    let date = null;
+    const datePath = path.join(articlePath, 'date.txt');
+    if (fs.existsSync(datePath)) {
+      const dateStr = fs.readFileSync(datePath, 'utf8').trim();
+      // 解析日期字符串
+      date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        date = null; // 如果日期无效则设为null
+      }
+    }
+    
+    // 尝试读取标签
+    let tags = [];
+    const tagsPath = path.join(articlePath, 'tags.txt');
+    if (fs.existsSync(tagsPath)) {
+      tags = fs.readFileSync(tagsPath, 'utf8')
+        .split('\n')
+        .map(tag => tag.trim())
+        .filter(tag => tag !== '');
+    }
+    
+    // 检查是否存在 index.md 文件
+    const indexPath = path.join(articlePath, 'index.md');
+    if (fs.existsSync(indexPath)) {
+      articles.push({
+        id: dir,
+        title: title,
+        date: date,
+        tags: tags,
+        draft: isDraft
+      });
+    }
+  }
+  
+  // 按日期排序，最新的在前；没有日期的排在最后
+  articles.sort((a, b) => {
+    if (a.date === null && b.date === null) return 0;
+    if (a.date === null) return 1;
+    if (b.date === null) return -1;
+    return b.date - a.date;
   });
   
-  if (missingFiles.length > 0) {
-    throw new Error(`缺少必要文件: ${missingFiles.join(', ')}`);
+  return articles;
+}
+
+// 生成文章页面
+function generateArticlePage(articleId) {
+  const articlePath = path.join(__dirname, 'articles', articleId);
+  const indexPath = path.join(articlePath, 'index.md');
+  
+  if (!fs.existsSync(indexPath)) {
+    return null;
   }
   
-  return true;
-}
-
-// 清理输出目录
-function cleanOutputDir() {
-  logInfo(`开始清理输出目录: ${BUILD_CONFIG.outputDir}`);
-  try {
-    if (fs.existsSync(BUILD_CONFIG.outputDir)) {
-      fs.rmSync(BUILD_CONFIG.outputDir, { recursive: true, force: true });
-      logSuccess(`成功清理目录: ${BUILD_CONFIG.outputDir}`);
-    }
-    fs.mkdirSync(BUILD_CONFIG.outputDir, { recursive: true });
-    logSuccess(`创建输出目录: ${BUILD_CONFIG.outputDir}`);
-  } catch (err) {
-    logError(`清理输出目录失败: ${err.message}`);
-    throw err;
-  }
-}
-
-// 复制文件并验证
-function copyFileWithValidation(source, destination) {
-  try {
-    const stats = fs.statSync(source);
-    fs.copyFileSync(source, destination);
-    
-    // 验证复制是否成功
-    const destStats = fs.statSync(destination);
-    if (stats.size !== destStats.size) {
-      throw new Error(`文件大小不匹配: ${source}`);
-    }
-    
-    logInfo(`已复制: ${source} -> ${destination}`);
-    return true;
-  } catch (err) {
-    logError(`复制文件失败 ${source}: ${err.message}`);
-    return false;
-  }
-}
-
-// 复制目录
-function copyDirectory(sourceDir, destDir) {
-  logInfo(`开始复制目录: ${sourceDir} -> ${destDir}`);
+  const markdownContent = fs.readFileSync(indexPath, 'utf8');
   
-  try {
-    if (!fs.existsSync(sourceDir)) {
-      logInfo(`目录不存在，跳过: ${sourceDir}`);
-      return false;
+  // 尝试读取标题
+  let title = articleId; // 默认使用ID作为标题
+  const titlePath = path.join(articlePath, 'title.txt');
+  if (fs.existsSync(titlePath)) {
+    title = fs.readFileSync(titlePath, 'utf8').trim();
+  }
+  
+  // 尝试读取日期
+  let date = null;
+  const datePath = path.join(articlePath, 'date.txt');
+  if (fs.existsSync(datePath)) {
+    const dateStr = fs.readFileSync(datePath, 'utf8').trim();
+    date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      date = null;
+    }
+  }
+  
+  // 尝试读取标签
+  let tags = [];
+  const tagsPath = path.join(articlePath, 'tags.txt');
+  if (fs.existsSync(tagsPath)) {
+    tags = fs.readFileSync(tagsPath, 'utf8')
+      .split('\n')
+      .map(tag => tag.trim())
+      .filter(tag => tag !== '');
+  }
+  
+  // 转换markdown内容为html
+  const md = require('markdown-it')({
+    html: true,
+    linkify: true,
+    typographer: true
+  });
+  
+  // 添加代码块高亮
+  const hljs = require('highlight.js');
+  const mdWithHighlighting = require('markdown-it-highlightjs')(hljs);
+  md.use(mdWithHighlighting);
+
+  let htmlContent = md.render(markdownContent);
+  
+  // 为代码块添加行号
+  htmlContent = htmlContent.replace(/<pre><code>(.*?)<\/code><\/pre>/gms, (match, p1) => {
+    const lines = p1.split('\n');
+    const langMatch = match.match(/class="([^"]*?)"/);
+    let lang = '';
+    if (langMatch && langMatch[1]) {
+      lang = langMatch[1].replace('language-', '');
     }
     
-    fs.mkdirSync(destDir, { recursive: true });
+    let numberedLines = '<div class="code-block">';
+    if (lang) {
+      numberedLines += `<div class="code-header">${lang}</div>`;
+    }
+    numberedLines += '<pre><code>';
     
-    const files = fs.readdirSync(sourceDir);
-    let successCount = 0;
-    let failureCount = 0;
-    
-    files.forEach(file => {
-      const sourcePath = path.join(sourceDir, file);
-      const destPath = path.join(destDir, file);
-      const isDir = fs.statSync(sourcePath).isDirectory();
-      
-      if (isDir) {
-        if (copyDirectory(sourcePath, destPath)) {
-          successCount++;
-        } else {
-          failureCount++;
-        }
-      } else {
-        if (copyFileWithValidation(sourcePath, destPath)) {
-          successCount++;
-        } else {
-          failureCount++;
-        }
+    lines.forEach((line, index) => {
+      if (index < lines.length - 1) { // 忽略最后一个空行
+        numberedLines += `<span class="line"><span class="line-number">${index + 1}</span>${line}</span>\n`;
       }
     });
     
-    logInfo(`目录复制完成: ${sourceDir} -> ${destDir} (成功: ${successCount}, 失败: ${failureCount})`);
-    return failureCount === 0;
-  } catch (err) {
-    logError(`复制目录失败 ${sourceDir}: ${err.message}`);
-    return false;
+    numberedLines += '</code></pre></div>';
+    return numberedLines;
+  });
+  
+  // 生成完整的HTML页面
+  const templatePath = path.join(__dirname, 'template', 'article.html');
+  let template;
+  if (fs.existsSync(templatePath)) {
+    template = fs.readFileSync(templatePath, 'utf8');
+  } else {
+    // 默认模板
+    template = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} - {{siteName}}</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/highlight.css">
+  <script src="/script.js"></script>
+</head>
+<body>
+  <main>
+    <article>
+      <header>
+        <h1>{{title}}</h1>
+        {{#if date}}
+        <time datetime="{{date}}">{{formatDate date}}</time>
+        {{/if}}
+        {{#if tags}}
+        <div class="tags">
+          {{#each tags}}
+          <span class="tag">{{this}}</span>
+          {{/each}}
+        </div>
+        {{/if}}
+      </header>
+      <div class="content">
+        {{{content}}}
+      </div>
+    </article>
+  </main>
+</body>
+</html>`;
   }
+  
+  // 简单的模板替换
+  const siteName = config.siteName || 'My Blog';
+  let pageHtml = template
+    .replace('{{title}}', title)
+    .replace('{{siteName}}', siteName)
+    .replace('{{{content}}}', htmlContent)
+    .replace('{{date}}', date ? formatDate(date) : '')
+    .replace('{{formatDate date}}', date ? formatDate(date) : '');
+  
+  // 处理条件渲染
+  if (date) {
+    pageHtml = pageHtml.replace('{{#if date}}', '').replace('{{/if}}', '');
+  } else {
+    // 移除整个日期块
+    pageHtml = pageHtml.replace(/{{#if date}}[\s\S]*?{{\/if}}/, '');
+  }
+  
+  if (tags && tags.length > 0) {
+    let tagsHtml = '<div class="tags">';
+    tags.forEach(tag => {
+      tagsHtml += `<span class="tag">${tag}</span>`;
+    });
+    tagsHtml += '</div>';
+    pageHtml = pageHtml.replace('{{#if tags}}', '').replace('{{/if}}', '').replace('{{#each tags}}', tagsHtml).replace('{{/each}}', '');
+  } else {
+    // 移除整个标签块
+    pageHtml = pageHtml.replace(/{{#if tags}}[\s\S]*?{{\/if}}/, '');
+  }
+  
+  return pageHtml;
 }
 
-// 处理环境变量
-function processEnvironmentVariables() {
-  logInfo('处理环境变量配置');
+// 格式化日期
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// 生成主页
+function generateHomePage(articles) {
+  const templatePath = path.join(__dirname, 'template', 'index.html');
+  let template;
+  if (fs.existsSync(templatePath)) {
+    template = fs.readFileSync(templatePath, 'utf8');
+  } else {
+    // 默认模板
+    template = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{siteName}}</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/script.js"></script>
+</head>
+<body>
+  <main>
+    <h1>{{siteName}}</h1>
+    <section class="articles-list">
+      {{#each articles}}
+      <article class="article-item">
+        <h2><a href="/article/{{this.id}}">{{this.title}}</a></h2>
+        {{#if this.date}}
+        <time datetime="{{this.date}}">{{formatDate this.date}}</time>
+        {{/if}}
+        {{#if this.tags}}
+        <div class="tags">
+          {{#each this.tags}}
+          <span class="tag">{{this}}</span>
+          {{/each}}
+        </div>
+        {{/if}}
+        {{#if this.draft}}
+        <span class="draft-tag">草稿</span>
+        {{/if}}
+      </article>
+      {{/each}}
+    </section>
+  </main>
+</body>
+</html>`;
+  }
   
-  // 读取.env.example作为基准
-  const envExamplePath = '.env.example';
-  if (fs.existsSync(envExamplePath)) {
-    logInfo(`找到环境变量模板: ${envExamplePath}`);
+  const siteName = config.siteName || 'My Blog';
+  
+  // 生成文章列表HTML
+  let articlesHtml = '';
+  articles.forEach(article => {
+    articlesHtml += `
+      <article class="article-item">
+        <h2><a href="/article/${article.id}">${article.title}</a></h2>
+        ${article.date ? `<time datetime="${article.date.toISOString()}">${formatDate(article.date)}</time>` : ''}
+        ${article.tags && article.tags.length > 0 ? 
+          '<div class="tags">' + article.tags.map(tag => `<span class="tag">${tag}</span>`).join('') + '</div>' 
+          : ''}
+        ${article.draft ? '<span class="draft-tag">草稿</span>' : ''}
+      </article>
+    `;
+  });
+  
+  // 替换模板中的变量
+  let pageHtml = template
+    .replace('{{siteName}}', siteName)
+    .replace('{{#each articles}}', articlesHtml)
+    .replace('{{/each}}', '');
+  
+  // 处理条件渲染占位符
+  pageHtml = pageHtml.replace(/{{#if [^}]*}}/g, '').replace(/{{\/if}}/g, '');
+  
+  return pageHtml;
+}
+
+// 生成404页面
+function generateNotFoundPage() {
+  const templatePath = path.join(__dirname, 'template', '404.html');
+  let template;
+  if (fs.existsSync(templatePath)) {
+    template = fs.readFileSync(templatePath, 'utf8');
+  } else {
+    // 默认404页面
+    template = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - 页面未找到</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <h1>404 - 页面未找到</h1>
+    <p>抱歉，您访问的页面不存在。</p>
+    <a href="/">返回首页</a>
+  </main>
+</body>
+</html>`;
+  }
+  
+  return template;
+}
+
+// 复制静态资源
+function copyStaticFiles() {
+  const staticSrc = path.join(__dirname, 'static');
+  const staticDest = path.join(__dirname, 'dist', 'static');
+  
+  if (fs.existsSync(staticSrc)) {
+    // 确保目标目录存在
+    if (!fs.existsSync(path.dirname(staticDest))) {
+      fs.mkdirSync(path.dirname(staticDest), { recursive: true });
+    }
     
-    // 创建环境特定的配置
-    const envConfig = {
-      NODE_ENV: BUILD_CONFIG.environment,
-      APP_VERSION: process.env.APP_VERSION || '1.0.0',
-      BUILD_TIME: new Date().toISOString()
+    // 复制整个static目录
+    const copyRecursive = (src, dest) => {
+      const items = fs.readdirSync(src);
+      
+      for (let item of items) {
+        const srcPath = path.join(src, item);
+        const destPath = path.join(dest, item);
+        
+        const stat = fs.statSync(srcPath);
+        if (stat.isDirectory()) {
+          if (!fs.existsSync(destPath)) {
+            fs.mkdirSync(destPath, { recursive: true });
+          }
+          copyRecursive(srcPath, destPath);
+        } else {
+          fs.copyFileSync(srcPath, destPath);
+        }
+      }
     };
     
-    // 写入构建信息到env-config.js
-    const envConfigContent = `// 自动生成的环境配置
-window.APP_ENV = ${JSON.stringify(envConfig, null, 2)};
-`;
+    copyRecursive(staticSrc, staticDest);
+  }
+  
+  // 同样复制根目录下的CSS、JS和其他静态文件
+  const filesToCopy = ['style.css', 'script.js', 'highlight.css'];
+  for (const file of filesToCopy) {
+    const srcPath = path.join(__dirname, file);
+    const destPath = path.join(__dirname, 'dist', file);
     
-    const envConfigPath = path.join(BUILD_CONFIG.outputDir, 'js', 'env-config.js');
-    try {
-      // 确保目录存在
-      fs.mkdirSync(path.dirname(envConfigPath), { recursive: true });
-      fs.writeFileSync(envConfigPath, envConfigContent);
-      logSuccess(`环境配置已生成: ${envConfigPath}`);
-    } catch (err) {
-      logError(`生成环境配置失败: ${err.message}`);
+    if (fs.existsSync(srcPath)) {
+      // 确保目标目录存在
+      const destDir = path.dirname(destPath);
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+      }
+      fs.copyFileSync(srcPath, destPath);
     }
   }
 }
 
-// 验证构建结果
-function validateBuild() {
-  logInfo('验证构建结果...');
+// 主函数
+function main() {
+  console.log('开始构建博客...');
   
-  const requiredOutputFiles = ['index.html'];
-  const missingFiles = [];
+  // 获取文章列表
+  const articles = getArticles(isDraftVisible);
+  console.log(`找到 ${articles.length} 篇文章`);
   
-  requiredOutputFiles.forEach(file => {
-    const filePath = path.join(BUILD_CONFIG.outputDir, file);
-    if (!fs.existsSync(filePath)) {
-      missingFiles.push(file);
-    }
-  });
-  
-  if (missingFiles.length > 0) {
-    logError(`构建验证失败: 缺少关键文件 ${missingFiles.join(', ')}`);
-    return false;
+  // 创建输出目录
+  const outputDir = path.join(__dirname, 'dist');
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
   }
   
-  logSuccess('构建验证通过');
-  return true;
-}
-
-// 生成文件哈希用于缓存控制
-function generateAssetHashes() {
-  logInfo('生成静态资源哈希...');
-  const hashes = {};
-  const staticDirs = ['css', 'js'];
+  // 生成主页
+  console.log('正在生成主页...');
+  const homeHtml = generateHomePage(articles);
+  fs.writeFileSync(path.join(outputDir, 'index.html'), homeHtml);
   
-  staticDirs.forEach(dir => {
-    const dirPath = path.join(BUILD_CONFIG.outputDir, dir);
-    if (fs.existsSync(dirPath)) {
-      const files = fs.readdirSync(dirPath);
-      files.forEach(file => {
-        if (file.endsWith('.css') || file.endsWith('.js')) {
-          const filePath = path.join(dirPath, file);
-          const content = fs.readFileSync(filePath);
-          const hash = crypto.createHash('md5').update(content).digest('hex').substring(0, 8);
-          hashes[`${dir}/${file}`] = hash;
+  // 生成每篇文章的页面
+  console.log('正在生成文章页面...');
+  for (const article of articles) {
+    const articleHtml = generateArticlePage(article.id);
+    if (articleHtml) {
+      const articleDir = path.join(outputDir, 'article', article.id);
+      if (!fs.existsSync(articleDir)) {
+        fs.mkdirSync(articleDir, { recursive: true });
+      }
+      fs.writeFileSync(path.join(articleDir, 'index.html'), articleHtml);
+      console.log(`已生成文章: ${article.title}`);
+    }
+  }
+  
+  // 生成404页面
+  console.log('正在生成404页面...');
+  const notFoundHtml = generateNotFoundPage();
+  fs.writeFileSync(path.join(outputDir, '404.html'), notFoundHtml);
+  
+  // 复制静态资源
+  console.log('正在复制静态文件...');
+  copyStaticFiles();
+  
+  // 复制其他可能存在的静态资源
+  const assetsSrc = path.join(__dirname, 'assets');
+  const assetsDest = path.join(outputDir, 'assets');
+  if (fs.existsSync(assetsSrc)) {
+    const copyRecursive = (src, dest) => {
+      const items = fs.readdirSync(src);
+      
+      for (let item of items) {
+        const srcPath = path.join(src, item);
+        const destPath = path.join(dest, item);
+        
+        const stat = fs.statSync(srcPath);
+        if (stat.isDirectory()) {
+          if (!fs.existsSync(destPath)) {
+            fs.mkdirSync(destPath, { recursive: true });
+          }
+          copyRecursive(srcPath, destPath);
+        } else {
+          fs.copyFileSync(srcPath, destPath);
         }
-      });
-    }
-  });
+      }
+    };
+    
+    copyRecursive(assetsSrc, assetsDest);
+  }
   
-  const hashesPath = path.join(BUILD_CONFIG.outputDir, 'asset-hashes.json');
-  try {
-    fs.writeFileSync(hashesPath, JSON.stringify(hashes, null, 2));
-    logSuccess(`资产哈希已生成: ${hashesPath}`);
-  } catch (err) {
-    logError(`生成资产哈希失败: ${err.message}`);
-  }
+  console.log('构建完成！输出目录: dist');
 }
 
-// 主构建函数
-async function build() {
-  logInfo(`开始构建项目 [环境: ${BUILD_CONFIG.environment}]`);
-  logInfo(`Node.js版本: ${process.version}`);
-  
-  try {
-    // 1. 验证项目结构
-    logInfo('验证项目结构...');
-    validateRequiredFiles();
-    logSuccess('项目结构验证通过');
-    
-    // 2. 清理输出目录
-    cleanOutputDir();
-    
-    // 3. 复制静态文件
-    logInfo('开始复制静态文件...');
-    BUILD_CONFIG.staticFiles.forEach(file => {
-      const source = file;
-      const destination = path.join(BUILD_CONFIG.outputDir, file);
-      copyFileWithValidation(source, destination);
-    });
-    
-    // 4. 复制静态目录
-    logInfo('开始复制静态目录...');
-    BUILD_CONFIG.staticDirs.forEach(dir => {
-      const sourceDir = dir.source;
-      const destDir = path.join(BUILD_CONFIG.outputDir, dir.destination);
-      copyDirectory(sourceDir, destDir);
-    });
-    
-    // 5. 处理环境变量
-    processEnvironmentVariables();
-    
-    // 6. 生成文件哈希
-    generateAssetHashes();
-    
-    // 7. 写入构建信息
-    writeBuildInfo();
-    
-    // 8. 验证构建结果
-    if (!validateBuild()) {
-      throw new Error('构建验证失败');
-    }
-    
-    // 9. 输出构建统计
-    const endTime = Date.now();
-    const duration = ((endTime - BUILD_CONFIG.startTime) / 1000).toFixed(2);
-    
-    logInfo('========================================');
-    logSuccess(`构建完成！`);
-    logInfo(`环境: ${BUILD_CONFIG.environment}`);
-    logInfo(`持续时间: ${duration}秒`);
-    logInfo(`输出目录: ${BUILD_CONFIG.outputDir}`);
-    logInfo('========================================');
-    
-    return { success: true, duration };
-  } catch (err) {
-    logError('构建失败: ' + err.message);
-    logError(err.stack);
-    process.exitCode = 1;
-    return { success: false, error: err.message };
-  }
-}
-
-// 执行构建
-build().then(result => {
-  if (!result.success) {
-    console.error('构建过程遇到错误');
-    process.exit(1);
-  }
-});
-
-const fs = require('fs');
-const path = require('path');
-
-// 确保 dist 目录存在
-const distDir = path.join(__dirname, 'dist');
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir, { recursive: true });
-}
-
-// 复制静态资源到 dist 目录
-const publicDir = path.join(__dirname, 'public');
-if (fs.existsSync(publicDir)) {
-  const files = fs.readdirSync(publicDir);
-  for (const file of files) {
-    const srcPath = path.join(publicDir, file);
-    const destPath = path.join(distDir, file);
-    if (fs.statSync(srcPath).isFile()) {
-      fs.copyFileSync(srcPath, destPath);
-    } else {
-      // 如果是目录则递归复制
-      copyDir(srcPath, destPath);
-    }
-  }
-}
-
-// 复制 index.html 到 dist 目录
-const indexPath = path.join(__dirname, 'index.html');
-if (fs.existsSync(indexPath)) {
-  fs.copyFileSync(indexPath, path.join(distDir, 'index.html'));
-}
-
-console.log('Build completed successfully!');
-
-// 辅助函数：复制整个目录
-function copyDir(src, dest) {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
-
-  const items = fs.readdirSync(src);
-  for (const item of items) {
-    const srcPath = path.join(src, item);
-    const destPath = path.join(dest, item);
-
-    if (fs.statSync(srcPath).isFile()) {
-      fs.copyFileSync(srcPath, destPath);
-    } else {
-      copyDir(srcPath, destPath);
-    }
-  }
-}
+// 运行主函数
+main();
