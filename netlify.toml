@@ -1,6 +1,6 @@
 [build]
-  command = "npm install -g hexo-cli && hexo generate"  # 安装 Hexo CLI 并执行生成命令
-  publish = "out"
+  command = "npm install && npm install -g hexo-cli && hexo generate"  # 安装项目依赖和 Hexo CLI，然后执行生成命令
+  publish = "public"  # 修改发布目录为 public，因为 Hexo 默认生成到 public 目录
   functions = "functions"
 
 [dev]
