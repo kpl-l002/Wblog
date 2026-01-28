@@ -1,5 +1,5 @@
 [build]
-  command = "node build.js"
+  command = "hexo generate"  # 修改为 Hexo 的生成命令
   publish = "out"
   functions = "functions"
 
