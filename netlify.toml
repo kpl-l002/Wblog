@@ -1,21 +1,11 @@
 [build]
-  command = "npm install && npm install -g hexo-cli && hexo generate"  # 安装项目依赖和 Hexo CLI，然后执行生成命令
-  publish = "public"  # 修改发布目录为 public，因为 Hexo 默认生成到 public 目录
+  command = "npm install && npm install -g hexo-cli@latest && hexo clean && hexo generate"  # 安装项目依赖和最新版 Hexo CLI，清理缓存并生成
+  publish = "public"  # 发布目录为 public，因为 Hexo 默认生成到 public 目录
   functions = "functions"
 
 [dev]
   command = "npm run dev"
   port = 8080
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
 
 [template.environment]
   NODE_ENV = "production"
@@ -28,11 +18,6 @@
 
 [context.branch-deploy]
   environment = { NODE_ENV = "development" }
-
-# 函数超时设置
-# 由于 Netlify 构建系统不接受简单的数值形式，我们需要使用正确的对象格式
-[functions]
-  # 移除了 timeout 配置，因为它不是有效的 Netlify 函数配置选项
 
 # 重写规则，将 API 请求转发到 Netlify Functions
 [[redirects]]
@@ -62,3 +47,14 @@
   to = "/index.html"
   status = 200
   conditions = {Draft = "false"}
+
+# 移除重复的重定向规则
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
